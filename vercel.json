@@ -17,7 +17,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.tradingview.com https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' *.tradingview.com https://cdnjs.cloudflare.com; img-src 'self' data: https: *.tradingview.com; font-src 'self' https: *.tradingview.com; connect-src 'self' https: wss: *.tradingview.com https://api.sosovalue.xyz; frame-src 'self' *.tradingview.com; child-src 'self' *.tradingview.com; worker-src 'self' blob: *.tradingview.com; object-src 'none';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.tradingview.com s3.tradingview.com charting-library.tradingview.com https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' *.tradingview.com s3.tradingview.com; img-src 'self' data: https: *.tradingview.com s3.tradingview.com; font-src 'self' https: *.tradingview.com s3.tradingview.com; connect-src 'self' https: wss: *.tradingview.com s3.tradingview.com wss://prodata.tradingview.com wss://data.tradingview.com https://api.sosovalue.xyz; frame-src 'self' *.tradingview.com s3.tradingview.com; child-src 'self' *.tradingview.com s3.tradingview.com; worker-src 'self' blob: *.tradingview.com s3.tradingview.com; object-src 'none';"
         }
       ]
     }
