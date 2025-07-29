@@ -1,0 +1,38 @@
+{
+  "name": "bitcoin-etf-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard professionale per il monitoraggio degli ETF Bitcoin con integrazione TradingView",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'Build completed'",
+    "start": "npx serve .",
+    "preview": "npx serve ."
+  },
+  "keywords": [
+    "bitcoin",
+    "etf",
+    "dashboard",
+    "trading",
+    "cryptocurrency",
+    "tradingview",
+    "sosovalue",
+    "finance",
+    "analytics",
+    "investment"
+  ],
+  "author": "Davide",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/bitcoin-etf-dashboard.git"
+  },
+  "homepage": "https://bitcoin-etf-dashboard.vercel.app",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
