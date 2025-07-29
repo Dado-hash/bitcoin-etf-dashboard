@@ -265,11 +265,15 @@ class ETFDashboard {
     // Aggiorna automaticamente correlazione e marcatori se abilitati
     if (this.tradingViewWidget && this.data.length > 0) {
       // Aggiorna correlazione ETF-BTC
-      setTimeout(() => {
+      setTimeout(async () => {
         const etfData = this.prepareETFDataForTradingView();
         if (etfData.length > 0) {
-          const correlation = this.calculateETFBTCCorrelation(etfData);
-          this.updateCorrelationDisplay(correlation);
+          try {
+            const correlation = await this.calculateETFBTCCorrelation(etfData);
+            this.updateCorrelationDisplay(correlation);
+          } catch (error) {
+            console.error("❌ Errore aggiornamento correlazione:", error);
+          }
         }
       }, 1000);
     }
@@ -494,7 +498,9 @@ class ETFDashboard {
     if (etfData.length === 0) return;
 
     // Aggiungi indicatori visual per correlazione ETF-BTC
-    this.addETFCorrelationIndicators(etfData);
+    this.addETFCorrelationIndicators(etfData).catch(error => {
+      console.error("❌ Errore nel calcolo correlazione:", error);
+    });
 
     console.log("✅ Dati ETF integrati nel grafico TradingView");
   }
@@ -513,9 +519,9 @@ class ETFDashboard {
   }
 
   // Aggiunge indicatori visivi per correlazione ETF-BTC
-  addETFCorrelationIndicators(etfData) {
+  async addETFCorrelationIndicators(etfData) {
     // Calcola correlazioni
-    const correlation = this.calculateETFBTCCorrelation(etfData);
+    const correlation = await this.calculateETFBTCCorrelation(etfData);
 
     // Aggiorna l'overlay con informazioni di correlazione
     this.updateCorrelationDisplay(correlation);
@@ -530,12 +536,12 @@ class ETFDashboard {
   }
 
   // Calcola la correlazione tra inflow ETF e prezzo BTC
-  calculateETFBTCCorrelation(etfData) {
+  async calculateETFBTCCorrelation(etfData) {
     if (etfData.length < 10) return 0;
 
     try {
       // Ottieni dati storici di Bitcoin dai dati demo/API
-      const btcPriceData = this.getBTCPriceData();
+      const btcPriceData = await this.getBTCPriceData();
       
       if (btcPriceData.length < 10) {
         console.log("⚠️ Dati BTC insufficienti per correlazione, usando stima");
@@ -585,30 +591,86 @@ class ETFDashboard {
   }
 
   // Ottiene i dati storici di prezzo Bitcoin
-  getBTCPriceData() {
-    // Usa i dati BTC già presenti nei dati ETF come fallback
-    const btcFromETF = this.data.map((item, index) => ({
-      date: item.date,
-      price: item.btcPrice || this.estimateBTCPrice(item.date),
-      timestamp: new Date(item.date).getTime()
-    })).sort((a, b) => a.timestamp - b.timestamp);
+  async getBTCPriceData() {
+    try {
+      // Prima prova a ottenere dati reali da API esterna
+      const realBTCData = await this.fetchRealBTCPriceData();
+      if (realBTCData && realBTCData.length > 10) {
+        console.log("✅ Usando dati BTC reali da API esterna");
+        return realBTCData;
+      }
+    } catch (error) {
+      console.log("⚠️ Errore nel recupero dati BTC reali:", error.message);
+    }
 
-    // Se abbiamo accesso al widget TradingView, prova a estrarre dati reali
+    // Se abbiamo accesso al widget TradingView, prova a estrarre dati
     if (this.tradingViewWidget && typeof this.tradingViewWidget.chart === 'function') {
       try {
-        // Tenta di ottenere dati dal widget TradingView (questo dipende dall'API TradingView)
         const tvData = this.extractTradingViewData();
         if (tvData && tvData.length > 10) {
           console.log("✅ Usando dati BTC da TradingView");
           return tvData;
         }
       } catch (error) {
-        console.log("⚠️ Impossibile estrarre dati da TradingView, usando dati stimati");
+        console.log("⚠️ Impossibile estrarre dati da TradingView");
       }
     }
 
+    // Fallback: usa i dati BTC già presenti nei dati ETF
+    const btcFromETF = this.data.map((item, index) => ({
+      date: item.date,
+      price: item.btcPrice || this.estimateBTCPrice(item.date),
+      timestamp: new Date(item.date).getTime()
+    })).sort((a, b) => a.timestamp - b.timestamp);
+
     console.log("📊 Usando dati BTC stimati per correlazione");
     return btcFromETF;
+  }
+
+  // Recupera dati reali di prezzo Bitcoin da API pubblica
+  async fetchRealBTCPriceData() {
+    try {
+      // Usa CoinGecko API (gratuita, no API key richiesta)
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 90); // Ultimi 90 giorni
+      
+      const vsFrom = Math.floor(startDate.getTime() / 1000);
+      const vsTo = Math.floor(endDate.getTime() / 1000);
+      
+      const url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${vsFrom}&to=${vsTo}`;
+      
+      console.log("🔄 Recuperando dati BTC reali da CoinGecko...");
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`API CoinGecko error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.prices || !Array.isArray(data.prices)) {
+        throw new Error("Formato dati API non valido");
+      }
+      
+      // Converti i dati in formato compatibile
+      const btcPriceData = data.prices.map(([timestamp, price]) => ({
+        date: new Date(timestamp).toISOString().split('T')[0],
+        price: Math.round(price),
+        timestamp: timestamp
+      }));
+      
+      // Filtra solo i giorni che corrispondono ai nostri dati ETF
+      const etfDates = new Set(this.data.map(d => d.date));
+      const filteredData = btcPriceData.filter(item => etfDates.has(item.date));
+      
+      console.log(`✅ Recuperati ${filteredData.length} giorni di dati BTC reali`);
+      return filteredData.sort((a, b) => a.timestamp - b.timestamp);
+      
+    } catch (error) {
+      console.error("❌ Errore nel recupero dati BTC da CoinGecko:", error);
+      throw error;
+    }
   }
 
   // Estrae dati storici dal widget TradingView (se possibile)
