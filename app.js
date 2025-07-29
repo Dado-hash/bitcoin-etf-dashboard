@@ -548,22 +548,34 @@ class ETFDashboard {
         return this.estimateCorrelationFromMarketTrend(etfData);
       }
 
+      // Allinea i dati per data per assicurarsi che corrispondano
+      const alignedData = this.alignETFAndBTCData(etfData, btcPriceData);
+      
+      console.log(`📊 Dati allineati: ${alignedData.length} giorni per correlazione`);
+      
+      if (alignedData.length < 5) {
+        console.log("⚠️ Troppo pochi dati allineati per correlazione affidabile");
+        return this.estimateCorrelationFromMarketTrend(etfData);
+      }
+
       // Calcola variazioni percentuali giornaliere
       const inflowChanges = [];
       const btcPriceChanges = [];
 
-      const maxDays = Math.min(etfData.length, btcPriceData.length, 30);
-
-      for (let i = 1; i < maxDays; i++) {
+      for (let i = 1; i < alignedData.length; i++) {
+        const prev = alignedData[i - 1];
+        const curr = alignedData[i];
+        
         // Variazione percentuale inflow ETF
-        const prevInflow = etfData[i - 1].inflow;
-        const currInflow = etfData[i].inflow;
-        const inflowChange = prevInflow !== 0 ? ((currInflow - prevInflow) / Math.abs(prevInflow)) * 100 : 0;
+        const inflowChange = prev.inflow !== 0 ? ((curr.inflow - prev.inflow) / Math.abs(prev.inflow)) * 100 : 0;
         
         // Variazione percentuale prezzo BTC
-        const prevBTC = btcPriceData[i - 1].price;
-        const currBTC = btcPriceData[i].price;
-        const btcChange = prevBTC !== 0 ? ((currBTC - prevBTC) / prevBTC) * 100 : 0;
+        const btcChange = prev.btcPrice !== 0 ? ((curr.btcPrice - prev.btcPrice) / prev.btcPrice) * 100 : 0;
+
+        // Debug per i primi giorni
+        if (i <= 3) {
+          console.log(`Debug giorno ${i}: Inflow ${prev.inflow.toFixed(0)} → ${curr.inflow.toFixed(0)} (${inflowChange.toFixed(2)}%), BTC ${prev.btcPrice} → ${curr.btcPrice} (${btcChange.toFixed(2)}%)`);
+        }
 
         // Filtra outlier estremi
         if (Math.abs(inflowChange) < 500 && Math.abs(btcChange) < 50) {
@@ -714,6 +726,38 @@ class ETFDashboard {
     }
     
     return data.reverse(); // Ordine cronologico
+  }
+
+  // Allinea i dati ETF e BTC per data
+  alignETFAndBTCData(etfData, btcPriceData) {
+    // Crea una mappa dei prezzi BTC per data
+    const btcPriceMap = new Map();
+    btcPriceData.forEach(btc => {
+      btcPriceMap.set(btc.date, btc.price);
+    });
+
+    // Allinea i dati ETF con i prezzi BTC corrispondenti
+    const alignedData = [];
+    
+    // Ordina i dati ETF cronologicamente (dal più vecchio al più recente)
+    const sortedETFData = [...etfData].sort((a, b) => a.time - b.time);
+    
+    for (const etf of sortedETFData) {
+      const date = new Date(etf.time * 1000).toISOString().split('T')[0];
+      const btcPrice = btcPriceMap.get(date);
+      
+      if (btcPrice) {
+        alignedData.push({
+          date: date,
+          inflow: etf.inflow,
+          btcPrice: btcPrice,
+          timestamp: etf.time
+        });
+      }
+    }
+
+    // Ordina cronologicamente per calcolo delle variazioni
+    return alignedData.sort((a, b) => a.timestamp - b.timestamp);
   }
 
   // Stima correlazione basata su trend di mercato quando i dati sono insufficienti
