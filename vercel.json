@@ -1,22 +1,4 @@
 {
-  "version": 2,
-  "name": "bitcoin-etf-dashboard",
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -24,10 +6,6 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
         },
         {
           "key": "X-XSS-Protection",
@@ -39,14 +17,9 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://s3.tradingview.com https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://api.sosovalue.xyz https://s3.tradingview.com; frame-src https://s3.tradingview.com; child-src https://s3.tradingview.com;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.tradingview.com https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' *.tradingview.com https://cdnjs.cloudflare.com; img-src 'self' data: https: *.tradingview.com; font-src 'self' https: *.tradingview.com; connect-src 'self' https: wss: *.tradingview.com https://api.sosovalue.xyz; frame-src 'self' *.tradingview.com; child-src 'self' *.tradingview.com; worker-src 'self' blob: *.tradingview.com; object-src 'none';"
         }
       ]
     }
-  ],
-  "functions": {
-    "index.html": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }

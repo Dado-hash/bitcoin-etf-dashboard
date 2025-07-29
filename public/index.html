@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard ETF Bitcoin - Inflow & Trading</title>
+    <script src="https://unpkg.com/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1><i class="fab fa-bitcoin"></i> Bitcoin ETF Dashboard</h1>
+            <div class="header-controls">
+                <div id="dataSource" class="data-source-indicator">
+                    <i class="fas fa-database"></i>
+                    <span id="dataSourceText">Demo Mode</span>
+                </div>
+                <button id="refreshBtn" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> Aggiorna Dati
+                </button>
+                <div class="last-update">
+                    Ultimo aggiornamento: <span id="lastUpdateTime">-</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-arrow-trend-up"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Inflow Ieri</h3>
+                    <p class="stat-value" id="todayInflow">$0</p>
+                    <small class="stat-change positive" id="inflowChange">+0%</small>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Volume Totale</h3>
+                    <p class="stat-value" id="totalVolume">$0</p>
+                    <small class="stat-change" id="volumeChange">+0%</small>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Asset Totali</h3>
+                    <p class="stat-value" id="totalAssets">$0</p>
+                    <small class="stat-change positive" id="assetsChange">+0%</small>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-accumulation"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Inflow Cumulativo</h3>
+                    <p class="stat-value" id="cumInflow">$0</p>
+                    <small class="stat-change positive" id="cumChange">+0%</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- TradingView Combined Chart -->
+            <div class="chart-container tradingview-container">
+                <div class="chart-header">
+                    <h2><i class="fab fa-bitcoin"></i> Bitcoin & ETF Analytics</h2>
+                    <div class="chart-controls">
+                        <select id="symbolSelect">
+                            <option value="BITSTAMP:BTCUSD" selected>BTC/USD</option>
+                            <option value="COINBASE:BTCUSD">BTC/USD (Coinbase)</option>
+                            <option value="BINANCE:BTCUSDT">BTC/USDT</option>
+                        </select>
+                        <select id="intervalSelect">
+                            <option value="1h">1H</option>
+                            <option value="4h">4H</option>
+                            <option value="1D" selected>1D</option>
+                            <option value="1W">1W</option>
+                        </select>
+                        <select id="etfOverlay">
+                            <option value="none">Solo Bitcoin</option>
+                            <option value="inflow" selected>+ ETF Inflow</option>
+                            <option value="volume">+ ETF Volume</option>
+                            <option value="both">+ ETF Completo</option>
+                            <option value="enhanced">+ ETF Integrato</option>
+                        </select>
+                        <button id="toggleOverlay" class="btn btn-secondary" style="display: none; padding: 8px 12px;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="tradingview-wrapper">
+                    <div id="tradingview-chart"></div>
+                    <div id="etf-overlay" class="etf-overlay">
+                        <div class="etf-metrics">
+                            <div class="etf-metric">
+                                <div class="etf-metric-label">Inflow Ieri</div>
+                                <div class="etf-metric-value">$0</div>
+                                <div class="etf-metric-change">+0%</div>
+                                <div class="etf-mini-chart">
+                                    <canvas id="inflow-mini-chart"></canvas>
+                                </div>
+                            </div>
+                            <div style="text-align: center; color: var(--text-secondary); margin-top: 15px; font-size: 0.8rem;">
+                                <i class="fas fa-spinner fa-spin"></i> Caricamento dati ETF...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-table"></i> Dati Dettagliati ETF</h2>
+                <div class="table-controls">
+                    <input type="text" id="searchInput" placeholder="Cerca per data..." />
+                    <button id="exportBtn" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Esporta CSV
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="etfDataTable">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Inflow Netto</th>
+                            <th>Volume Scambiato</th>
+                            <th>Asset Netti</th>
+                            <th>Inflow Cumulativo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Caricamento dati ETF...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

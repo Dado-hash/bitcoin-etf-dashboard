@@ -5,9 +5,9 @@
   "main": "index.html",
   "scripts": {
     "dev": "npx serve .",
-    "build": "echo 'Build completed'",
-    "start": "npx serve .",
-    "preview": "npx serve ."
+    "build": "mkdir -p public && cp index.html styles.css app.js config.js config.production.js extensions.js public/",
+    "start": "npx serve public",
+    "preview": "npx serve public"
   },
   "keywords": [
     "bitcoin",
@@ -29,7 +29,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/bitcoin-etf-dashboard.git"
+    "url": "https://github.com/Dado-hash/bitcoin-etf-dashboard.git"
   },
   "homepage": "https://bitcoin-etf-dashboard.vercel.app",
   "engines": {
